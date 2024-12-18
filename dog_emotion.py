@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from PIL import Image
-#from streamlit_drawable_canvas import st_canvas
-#from ultralytics import YOLO
 from torchvision import models
 from torchvision.models import ResNet34_Weights
 from torchvision.models import EfficientNet_B0_Weights
@@ -83,7 +81,7 @@ def cls_result(model, img_path, transform):
   with torch.no_grad():
     image = img.unsqueeze(0).to(device)
     output = model(image)
-    prob = torch.sigmoid(output)  # Sigmoid 활성화 함수 적용
+    prob = torch.sigmoid(output)  
     predicted = (prob > 0.5).long()
     prob=round(prob.item(),3)*100
     if prob<50:prob=100-prob
