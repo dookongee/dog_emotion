@@ -15,8 +15,129 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import cv2
 import os
+import requests
+import json 
+from streamlit_lottie import st_lottie
 
-st.title("Dog_Prediction")   
+st.set_page_config(layout="wide")
+
+# Lottie 애니메이션 로드 함수
+def load_lottie_from_file(filepath: str):
+    with open(filepath, "r") as f:
+        return json.load(f)
+
+# 로컬 JSON 파일 경로
+json_file_path = "dog.json"
+
+# JSON 파일 로드
+lottie_animation = load_lottie_from_file(json_file_path)
+
+# HTML 삽입
+st.components.v1.html(f"""
+    <div class="lottie-container" style="width: 100%; height: 300px; position: relative; overflow: hidden;">
+        <div id="lottie-animation" class="lottie-animation" style="position: absolute; top: 50%; left: -300px; transform: translateY(-50%); animation: moveLottie 10s linear infinite; width: 300px; height: 300px;"></div>
+    </div>
+    <style>
+    @keyframes moveLottie {{
+        0% {{ left: -300px; }}
+        100% {{ left: 100%; }}
+    }}
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.7.4/lottie.min.js"></script>
+    <script>
+    var animationData = {json.dumps(lottie_animation)};
+    var animation = lottie.loadAnimation({{
+        container: document.getElementById('lottie-animation'),
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        animationData: animationData
+    }});
+    </script>
+""", height=300)
+
+st.markdown(
+    """
+    <style>
+
+        /* 눈송이 애니메이션 */
+        @keyframes snow {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            font-size: 2rem;
+            color: white;
+            text-shadow: 0 0 10px #FFF, 0 0 20px #AAF;
+            animation: snow 10s linear infinite;
+        }
+
+        /* 각 눈송이에 랜덤 위치와 속도 설정 */
+        .snowflake:nth-child(1) { left: 10%; animation-duration: 15s; }
+        .snowflake:nth-child(2) { left: 20%; animation-duration: 10s; }
+        .snowflake:nth-child(3) { left: 30%; animation-duration: 12s; }
+        .snowflake:nth-child(4) { left: 40%; animation-duration: 14s; }
+        .snowflake:nth-child(5) { left: 50%; animation-duration: 9s; }
+        .snowflake:nth-child(6) { left: 60%; animation-duration: 13s; }
+        .snowflake:nth-child(7) { left: 70%; animation-duration: 11s; }
+        .snowflake:nth-child(8) { left: 80%; animation-duration: 16s; }
+        .snowflake:nth-child(9) { left: 90%; animation-duration: 8s; }
+
+        .stTitle {
+            font-size: 4rem;
+            color: #FF0000;
+            text-shadow: 3px 3px 10px #FFFFFF, 0 0 20px #FFD700;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 3px 3px 10px #FFFFFF, 0 0 20px #FFD700; }
+            to { text-shadow: 3px 3px 20px #FF4500, 0 0 40px #FF6347; }
+        }
+        .stFileUploader {
+            background: linear-gradient(135deg, #FF0000, #FFD700);
+            border: 3px solid #FFFFFF;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 0px 20px #FFFFFF;
+            font-size: 1.2rem;
+            color: white;
+            text-align: center;
+        }
+
+        /* 눈송이를 추가 */
+        .snowflake-container {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+    </style>
+
+    <div class="snowflake-container">
+        <div class="snowflake">❄️</div>
+        <div class="snowflake">☃️</div>
+        <div class="snowflake">🎄</div>
+        <div class="snowflake">🎅</div>
+        <div class="snowflake">❄️</div>
+        <div class="snowflake">☃️</div>
+        <div class="snowflake">🎄</div>
+        <div class="snowflake">🎅</div>
+        <div class="snowflake">❄️</div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    <h1 style="text-align: center; font-size: 4rem; color: #FFFFFF; text-shadow: 3px 3px 10px #FF0000, 0 0 20px #FFD700;">너의 강아지의 기분은?</h1>
+    """,
+    unsafe_allow_html=True
+)   
 
 @st.cache_resource(hash_funcs={torch.nn.Module: lambda _: None})
 def densenet(weight, device):
@@ -83,8 +204,7 @@ def cls_result(model, img_path, transform):
     output = model(image)
     prob = torch.sigmoid(output)  
     predicted = (prob > 0.5).long()
-    prob=round(prob.item(),3)*100
-    if prob<50:prob=100-prob
+    prob=round(prob.item(),3)
   return predicted.item(), prob
 
 def predict_dog(image_path, model, transform, dog_class_id):
@@ -133,23 +253,45 @@ if uploaded_file is not None:
   st.image(img_path, caption='업로드한 이미지')
 
   result=predict_dog(img_path, resnet34, test_transform, dog_class_ids)
-  if result=='Dog':
+ 
 
-    for i in model_list:
-      pred, prob=cls_result(i,img_path,test_transform)
-      pred_list.append(pred)
-      prob_list.append(prob)
+  for i in model_list:
+    pred, prob=cls_result(i,img_path,test_transform)
+    pred_list.append(pred)
+    prob_list.append(prob)
 
-    if pred_list.count(0)>pred_list.count(1):
-      prediction='happy'
-      probability=round(sum([prob_list[i] for i, value in enumerate(pred_list) if value==0])/pred_list.count(0),2)
-    else:
-      prediction='not_happy'
-      probability=round(sum([prob_list[i] for i, value in enumerate(pred_list) if value==1])/pred_list.count(1),2)
+  weighted_prob = np.average(prob_list, axis=0)
+  prob1 = weighted_prob
+  prob0 = 1 - weighted_prob
 
-    st.write(prediction, probability)
-    st.write(pred_list)
-    st.write(prob_list)
+  if prob1 > prob0:
+    prediction = 'not happy'
+    probability = prob1 * 100
   else:
-    st.write("강아지를 검출할 수 없습니다.")
-    st.write("다른 강아지 사진을 업로드해 주세요!")
+    prediction = 'happy'
+    probability = prob0 * 100
+
+  if result=='Dog':
+    st.markdown(
+              f"""
+              <div style="padding: 20px; border: 3px solid #FFFFFF; background: linear-gradient(135deg, #FF0000, #FFD700); color: white; border-radius: 15px; box-shadow: 0px 0px 20px #FFFFFF; font-size: 1.2rem; text-align: center;">
+              <h2 style="text-align: center;">🎁 예측 결과: <span style='color: #FFFFFF;'>{prediction}</span></h2>
+              <p style="text-align: center;">확률: <b>{probability}%</b></p>
+              </div>
+              """,
+              unsafe_allow_html=True
+    )
+
+  else:
+    st.markdown(
+            f"""
+            <div style="padding: 20px; border: 3px solid #FFFFFF; background: linear-gradient(135deg, #FF0000, #FFD700); color: white; border-radius: 15px; box-shadow: 0px 0px 20px #FFFFFF; font-size: 1.2rem; text-align: center;">
+            <h2 style="text-align: center;">🎁 예측 결과: <span style='color: #FFFFFF;'>{prediction}</span></h2>
+            <p style="text-align: center;">확률: <b>{probability}%</b></p>
+            <p style="text-align: center;">이미지에 강아지가 없는 것 같아요: <b>{probability}%</b></p>
+            <p style="text-align: center;">강아지 다운 사진을 다시 업로드해 주세요!: <b>{probability}%</b></p>
+            </div>
+            """,
+            unsafe_allow_html=True
+    )
+  
