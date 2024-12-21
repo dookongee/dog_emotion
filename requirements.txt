@@ -6,3 +6,4 @@ torch
 torchvision
 albumentations
 opencv-python-headless
+streamlit-lottie
