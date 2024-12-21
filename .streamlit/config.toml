@@ -1,0 +1,8 @@
+# dog/.streamlit/config.toml
+
+[theme]
+base = "dark"  # Dark Mode 설정
+primaryColor = "#1f77b4"  # 주요 버튼 색상 (선택 사항)
+backgroundColor = "#0e1117"  # 배경 색상 (선택 사항)
+secondaryBackgroundColor = "#262730"  # 사이드바 배경 색상 (선택 사항)
+textColor = "#ffffff"  # 텍스트 색상 (선택 사항)
