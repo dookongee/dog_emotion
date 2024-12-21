@@ -266,10 +266,10 @@ if uploaded_file is not None:
 
   if prob1 > prob0:
     prediction = 'not happy'
-    probability = prob1 * 100
+    probability = round(prob1 * 100,2)
   else:
     prediction = 'happy'
-    probability = prob0 * 100
+    probability = round(prob0 * 100,2)
 
   if result=='Dog':
     st.markdown(
@@ -288,8 +288,8 @@ if uploaded_file is not None:
             <div style="padding: 20px; border: 3px solid #FFFFFF; background: linear-gradient(135deg, #FF0000, #FFD700); color: white; border-radius: 15px; box-shadow: 0px 0px 20px #FFFFFF; font-size: 1.2rem; text-align: center;">
             <h2 style="text-align: center;">🎁 예측 결과: <span style='color: #FFFFFF;'>{prediction}</span></h2>
             <p style="text-align: center;">확률: <b>{probability}%</b></p>
-            <p style="text-align: center;">이미지에 강아지가 없는 것 같아요: <b>{probability}%</b></p>
-            <p style="text-align: center;">강아지 다운 사진을 다시 업로드해 주세요!: <b>{probability}%</b></p>
+            <p style="text-align: center;">이미지에 강아지가 없는 것 같아요: <b></p>
+            <p style="text-align: center;">강아지 다운 사진을 다시 업로드해 주세요!: <b></p>
             </div>
             """,
             unsafe_allow_html=True
